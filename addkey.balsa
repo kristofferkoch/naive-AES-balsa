@@ -1,0 +1,48 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    Foobar is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+
+import [balsa.types.basic]
+
+type twomatrices is record
+   a : array 16 of byte;
+   b : array 16 of byte
+end
+
+procedure addkey (input i : twomatrices;
+                output o : array 16 of byte) is
+begin
+   loop i -> then
+      -- TODO: Make structural loop
+      o <- {i.a[0] xor i.b[0],
+            i.a[1] xor i.b[1],
+            i.a[2] xor i.b[2],
+            i.a[3] xor i.b[3],
+            i.a[4] xor i.b[4],
+            i.a[5] xor i.b[5],
+            i.a[6] xor i.b[6],
+            i.a[7] xor i.b[7],
+            i.a[8] xor i.b[8],
+            i.a[9] xor i.b[9],
+            i.a[10] xor i.b[10],
+            i.a[11] xor i.b[11],
+            i.a[12] xor i.b[12],
+            i.a[13] xor i.b[13],
+            i.a[14] xor i.b[14],
+            i.a[15] xor i.b[15]
+            }
+   end end
+end

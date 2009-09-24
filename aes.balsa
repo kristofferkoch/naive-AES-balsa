@@ -1,0 +1,119 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    Foobar is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+
+import [balsa.types.basic]
+
+import [addkey]
+import [sbox]
+import [shiftrow]
+import [mixcolumns]
+import [gfdouble]
+
+type blocks is record
+   data : array 16 of byte ;
+   state : array 16 of byte
+end
+
+procedure aes(input inp : blocks;
+               output o : blocks) is
+   channel toadd : twomatrices
+   channel added : array 16 of byte
+   array 16 of channel tosbox, fromsbox : byte
+   channel toshiftrow, fromshiftrow, tomix, frommix : array 16 of byte
+   variable state, nextstate, key, nextkey : array 16 of byte
+   variable rcon, nextrcon : byte
+   channel togfdouble : byte
+   channel fromgfdouble : array 8 of bit
+   variable i, i_next : 4 bits
+   variable done : bit
+begin
+addkey(toadd, added) ||
+for || k in 0..15 then
+   sbox(tosbox[k], fromsbox[k])
+end ||
+shiftrow(toshiftrow, fromshiftrow) ||
+mixcolumns(tomix, frommix) ||
+gfdouble(togfdouble, fromgfdouble) ||
+loop 
+   inp -> then
+      toadd <- {inp.data, inp.state} ||
+      nextkey := inp.state
+      -- || print "Using key ", inp.state, " for first round"
+   end ||
+   added -> state ||
+   rcon := 1 ||
+   i := 0;
+   loop 
+      key := nextkey ||
+      i_next := (i + 1 as 4 bits) ||
+      for || k in 0..15 then
+         tosbox[k] <- state[k] ||
+         fromsbox[k] -> nextstate[k]
+      end;
+      --print "After sbox: ", nextstate;
+      [--key schedule
+        --print "Into sbox: ", key[13]," ",key[14]," ",key[15]," ",key[12];
+	tosbox[0] <- key[13] ||
+        tosbox[1] <- key[14] ||
+        tosbox[2] <- key[15] ||
+        tosbox[3] <- key[12] ||
+        fromsbox[0] -> then
+           --print "fromsbox[0]: ", fromsbox[0];
+           nextkey[0] := fromsbox[0] xor key[0] xor rcon
+        end ||
+        for || k in 1..3 then
+           fromsbox[k] -> then
+              --print "fromsbox[",k,"]: ", fromsbox[k];
+              nextkey[k] := fromsbox[k] xor key[k]
+           end
+        end ||
+        togfdouble <- rcon ||
+        fromgfdouble -> then nextrcon := (fromgfdouble as byte) end;
+        --print "rcon: ", rcon;
+	--print "first word of exp key: ", nextkey[0..3];
+        -- todo: Roll following into a loop
+        for || k in 4..7 then
+           nextkey[k] := key[k] xor nextkey[k-4]
+        end;
+	for || k in 8..11 then
+           nextkey[k] := key[k] xor nextkey[k-4]
+        end;
+	for || k in 12..15 then
+           nextkey[k] := key[k] xor nextkey[k-4]
+        end
+      ]||[
+      toshiftrow <- nextstate ||
+      fromshiftrow -> state ||
+      done := i = 9;
+      --print "After shift: ", state;
+      if done then
+         nextstate := state
+      else
+         tomix <- state ||
+         frommix -> nextstate
+      end ];
+      --print "After mix: ", nextstate;
+      --print "Using key ", nextkey, " for round ", i+1 ;
+      toadd <- {nextstate, nextkey} ||
+      added -> state ||
+      rcon := nextrcon ||
+      i := i_next
+      --;print "State is ", state, " after round ", i-1
+   while done = 0 end;
+   o <- {state, key}
+end
+end

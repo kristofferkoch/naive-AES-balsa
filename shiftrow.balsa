@@ -1,0 +1,38 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    Foobar is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+
+import [balsa.types.basic]
+
+--Version for key arranged as:
+-- 0 4 8 C  ...  0 4 8 C
+-- 1 5 9 D       5 9 D 1
+-- 2 6 A E       A E 2 6
+-- 3 7 B F       F 3 7 B
+
+procedure shiftrow (input i : array 16 of byte;
+	            output o : array 16 of byte) is
+begin
+   loop
+      i -> then
+         -- TODO: Make strided loop
+         o <- {i[0],i[5],i[0xA],i[0xF],
+               i[4],i[9],i[0xE],i[3],
+               i[8],i[0xD],i[2],i[7],
+               i[0xC],i[1],i[6],i[0xB]}
+      end
+   end
+end

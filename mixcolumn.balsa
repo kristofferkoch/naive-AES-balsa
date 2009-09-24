@@ -1,0 +1,74 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    Foobar is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+
+import [balsa.types.basic]
+
+import [gfmul]
+
+procedure mixcolumn (input inp : array 0..3 of byte;
+	             output o : array 0..3 of byte) is
+   array 16 of channel op : operands 
+   array 16 of channel res : array 8 of bit
+   variable x : array 0..3 of byte
+--   constant m = {2,3,1,1,  1,2,3,1,  1,1,2,3,  3,1,1,2} : array 16 of byte
+begin
+(--
+o[0] = i[0]*m[0] + i[1]*m[1] + i[2]*m[2] + i[3]*m[3]
+o[1] = i[0]*m[4] + i[1]*m[5] + i[2]*m[6] + i[3]*m[6]
+o[1] = i[0]*m[7] + i[1]*m[8] + i[2]*m[9] + i[3]*m[10]
+o[1] = i[0]*m[11] + i[1]*m[12] + i[2]*m[13] + i[3]*m[14]
+--)
+   for || k in 0..15 then
+      gfmul(op[k], res[k])
+   end ||
+   loop 
+   inp -> then
+      op[0] <- {(2 as array 8 of bit), (inp[0] as array 8 of bit)} ||
+      op[1] <- {(3 as array 8 of bit), (inp[1] as array 8 of bit)} ||
+      op[2] <- {(1 as array 8 of bit), (inp[2] as array 8 of bit)} ||
+      op[3] <- {(1 as array 8 of bit), (inp[3] as array 8 of bit)} ||
+
+      op[4] <- {(1 as array 8 of bit), (inp[0] as array 8 of bit)} ||
+      op[5] <- {(2 as array 8 of bit), (inp[1] as array 8 of bit)} ||
+      op[6] <- {(3 as array 8 of bit), (inp[2] as array 8 of bit)} ||
+      op[7] <- {(1 as array 8 of bit), (inp[3] as array 8 of bit)} ||
+
+      op[8] <- {(1 as array 8 of bit), (inp[0] as array 8 of bit)} ||
+      op[9] <- {(1 as array 8 of bit), (inp[1] as array 8 of bit)} ||
+      op[10] <- {(2 as array 8 of bit), (inp[2] as array 8 of bit)} ||
+      op[11] <- {(3 as array 8 of bit), (inp[3] as array 8 of bit)} ||
+
+      op[12] <- {(3 as array 8 of bit), (inp[0] as array 8 of bit)} ||
+      op[13] <- {(1 as array 8 of bit), (inp[1] as array 8 of bit)} ||
+      op[14] <- {(1 as array 8 of bit), (inp[2] as array 8 of bit)} ||
+      op[15] <- {(2 as array 8 of bit), (inp[3] as array 8 of bit)}
+   end ||
+   res[0], res[1], res[2], res[3] -> then
+      x[0] := (res[0] as byte) xor (res[1] as byte) xor (res[2] as byte) xor (res[3] as byte)
+   end ||
+   res[4], res[5], res[6], res[7] -> then
+      x[1] := (res[4] as byte) xor (res[5] as byte) xor (res[6] as byte) xor (res[7] as byte)
+   end ||
+   res[8], res[9], res[10], res[11] -> then
+      x[2] := (res[8] as byte) xor (res[9] as byte) xor (res[10] as byte) xor (res[11] as byte)
+   end ||
+   res[12], res[13], res[14], res[15] -> then
+      x[3] := (res[12] as byte) xor (res[13] as byte) xor (res[14] as byte) xor (res[15] as byte)
+   end ;
+   o <- x 
+   end 
+end

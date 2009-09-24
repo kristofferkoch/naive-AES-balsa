@@ -1,0 +1,49 @@
+;;; Balsa Project file
+;;; Created: Fri May 22 16:48:13 2009
+;;; By: koch@i7 (Linux)
+;;; With balsa-mgr version: 0.7.0 (2004-12-20)
+;;; Supplied with Balsa version: 3.5.1
+
+(balsa-project
+    (name "test")
+    (import-path ".")
+    (simulation-system "breezesim")
+    (files
+        "addkey"
+        (top-level "aes"
+            (test "aes-simpletest" "aes"
+                (ports
+                    (input-port "inp" file "aes.dat")
+                    (output-port "o" log "")
+                )
+            )
+        )
+        "gfdouble"
+        (top-level "gfmul"
+            (test "multest" "gfmul"
+                (ports
+                    (input-port "inp" file "multest.dat")
+                    (output-port "o" log "")
+                )
+            )
+        )
+        (top-level "mixcolumn"
+            (test "test1" "mixcolumn"
+                (ports
+                    (input-port "inp" file "mixcol.dat")
+                    (output-port "o" log "")
+                )
+            )
+        )
+        (top-level "mixcolumns"
+            (test "mixcolumns-test" "mixcolumns"
+                (ports
+                    (input-port "i" file "mixcolumns.dat")
+                    (output-port "o" log "")
+                )
+            )
+        )
+        "sbox"
+        "shiftrow"
+    )
+)

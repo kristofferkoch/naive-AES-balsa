@@ -1,0 +1,27 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    Foobar is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+
+import [balsa.types.basic]
+
+procedure gfdouble(input i : byte;
+                  output o : array 8 of bit) is
+begin
+loop i-> then
+   o <- {#i[7], #i[7] xor #i[0], #i[1], #i[7] xor #i[2],
+         #i[7] xor #i[3], #i[4], #i[5], #i[6]}
+end end
+end
