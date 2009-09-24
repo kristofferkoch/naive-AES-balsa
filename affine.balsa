@@ -1,0 +1,62 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    Foobar is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+import [balsa.types.basic]
+
+
+procedure gf_addbyte(input a,b : byte; output o : byte) is
+   channel oa : array 8 of bit
+begin
+   --a,b -> then
+   select a,b then
+      oa <- {#a[0] xor #b[0],
+             #a[1] xor #b[1],
+             #a[2] xor #b[2],
+             #a[3] xor #b[3],
+             #a[4] xor #b[4],
+             #a[5] xor #b[5],
+             #a[6] xor #b[6],
+             #a[7] xor #b[7]
+             }
+   end ||
+   --oa -> then
+   select oa then
+      o <- (oa as byte)
+   end
+end
+
+procedure affine(input i : byte; output o : byte) is
+   channel oa : array 8 of bit
+   channel ob : byte
+begin
+   --i -> then
+   select i then
+      oa <- {#i[7] xor #i[6] xor #i[5] xor #i[4] xor #i[0],
+             #i[7] xor #i[6] xor #i[5] xor #i[1] xor #i[0],
+             #i[7] xor #i[6] xor #i[2] xor #i[1] xor #i[0],
+             #i[7] xor #i[3] xor #i[2] xor #i[1] xor #i[0],
+             #i[4] xor #i[3] xor #i[2] xor #i[1] xor #i[0],
+             #i[5] xor #i[4] xor #i[3] xor #i[2] xor #i[1],
+             #i[6] xor #i[5] xor #i[4] xor #i[3] xor #i[2],
+             #i[7] xor #i[6] xor #i[5] xor #i[4] xor #i[3]
+            }
+   end ||
+   --oa -> then
+   select oa then
+      ob <- (oa as byte)
+   end ||
+   gf_addbyte(ob, <- 0x63, o)
+end

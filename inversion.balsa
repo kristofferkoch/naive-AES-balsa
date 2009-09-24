@@ -1,0 +1,249 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    Foobar is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+
+import [balsa.types.basic]
+
+procedure inv4_table(input i : array 4 of bit; output o : array 4 of bit) is
+   constant tbl = {0,1,3,2,0xf,0xc,9,0xb,0xa,6,8,7,5,0xe,0xd,4}: array 16 of nibble
+begin
+   -- TODO: Should this be table?
+   i -> then
+   --select i then
+      o <- #(tbl[(i as nibble)])
+   end
+end
+
+procedure inv4(input i : array 4 of bit; output o : array 4 of bit) is
+   channel c012, c12, c03, c013, c13, c023, c123, c02 : bit
+begin
+   i -> then
+   --select i then
+      c012 <- i[0] and i[1] and i[2] ||
+      c12  <- i[1] and i[2] ||
+      c03  <- i[0] and i[3] ||
+      c013 <- i[0] and i[1] and i[3] ||
+      c023 <- i[0] and i[2] and i[3] ||
+      c13  <- i[1] and i[3] ||
+      c123 <- i[1] and i[2] and i[3] ||
+      c02  <- i[0] and i[2] ||
+      select c012, c12, c03, c013, c13, c023, c123, c02 then
+         o <- {i[0] xor i[1] xor i[2] xor c012 xor c12 xor c03 xor c013 xor c13 xor c023 xor c123,
+               i[1] xor i[2] xor i[3] xor c02 xor c013 xor c123,
+               i[2] xor c12 xor c03 xor c023 xor c123,
+               i[2] xor i[3] xor c03 xor c123}
+      end
+   end
+end
+
+procedure sum2(input a,b : array 2 of bit; output o : array 2 of bit) is
+begin
+   --a,b -> then
+   select a,b then
+      o <- {a[0] xor b[0], a[1] xor b[1]}
+   end
+end
+
+
+procedure mul2(input a,b : array 2 of bit; output o : array 2 of bit) is
+   channel a0b0, a1b1, a1b0, a0b1 : bit
+begin
+   --a,b -> then
+   select a,b then
+      a0b0 <- a[0] and b[0] ||
+      a1b1 <- a[1] and b[1] ||
+      a1b0 <- a[1] and b[0] ||
+      a0b1 <- a[0] and b[1]
+   end ||
+   --a1b1, a0b0, a1b0, a0b1 -> then
+   select a1b1, a0b0, a1b0, a0b1 then
+     o <- {a1b1 xor a0b0, a1b1 xor a0b1 xor a1b0}
+   end
+end
+procedure mulphi2(input i : array 2 of bit; output o : array 2 of bit) is
+begin
+   i -> then
+   --select i then
+      o <- {i[1], i[1] xor i[0]}
+   end
+end
+
+procedure mul4(input a,b : array 4 of bit; output o : array 4 of bit) is
+   channel aH, aL, aS, bH, bL, bS,oH,oL,c,d,e,f : array 2 of bit
+begin
+  a,b -> then
+  --select a,b then
+     aH <- {a[2], a[3]} ||
+     aL <- {a[0], a[1]} ||
+     bH <- {b[2], b[3]} ||
+     bL <- {b[0], b[1]}
+  end ||
+  bH,aL -> then
+  --select bH,aL then
+     aH -> then
+     --select aH then
+        mul2(<- aH, <- bH, c) ||
+        sum2(<- aH, <- aL, aS) 
+     end ||
+     bL -> then
+     --select bL then
+        sum2(<- bH, <- bL, bS) ||
+        mul2(<- aL, <- bL, e) 
+     end
+  end ||
+
+  mul2(aS, bS, d) ||
+  mulphi2(c, f) ||
+  e -> then
+  --select e then
+     sum2(d, <- e, oH) ||
+     sum2(<- e, f, oL)
+  end ||
+  oH, oL -> then
+  --select oH, oL then
+    o <- {oL[0], oL[1], oH[0], oH[1]}
+  end
+end
+
+procedure mullambda4(input i : array 4 of bit; output o : array 4 of bit) is
+begin
+   i -> then
+   --select i then
+      o <- {                  i[2],
+                                       i[3],
+            i[0] xor i[1] xor i[2] xor i[3],
+            i[0]          xor i[2]}
+   end
+end
+
+procedure square4(input i : array 4 of bit; output o : array 4 of bit) is
+begin
+   i -> then
+   --select i then
+      o <- {i[0] xor i[1]          xor i[3],
+                     i[1] xor i[2],
+                              i[2] xor i[3],
+                                       i[3]
+           }
+   end
+end
+
+procedure add4(input a,b : array 4 of bit; output o : array 4 of bit) is
+begin
+   a,b -> then
+   --select a,b then
+      o <- {a[0] xor b[0],
+            a[1] xor b[1],
+            a[2] xor b[2],
+            a[3] xor b[3]}
+   end
+end
+
+procedure iso(input i : byte ; output a,b : array 4 of bit) is
+begin
+   i -> then
+   --select i then
+      a  <- {#i[7]           xor #i[5]           xor #i[3] xor #i[2] xor #i[1],
+             #i[7]           xor #i[5]           xor #i[3] xor #i[2],
+             #i[7] xor #i[6]           xor #i[4] xor #i[3] xor #i[2] xor #i[1],
+             #i[7]           xor #i[5]
+            } ||
+      b  <- {          #i[6]                                         xor #i[1] xor #i[0],
+                       #i[6]           xor #i[4]                     xor #i[1],
+             #i[7]                     xor #i[4] xor #i[3] xor #i[2] xor #i[1],
+             #i[7] xor #i[6]                               xor #i[2] xor #i[1]
+            }
+   end
+end
+
+procedure inviso(input h,j : array 4 of bit; output o : byte) is
+   channel oa : array 8 of bit
+begin
+   h, j -> then
+   --select h, j then
+      oa <- {         h[2] xor h[1] xor h[0] xor j[2]                   xor j[0],
+                               h[1] xor h[0],
+             h[3]                   xor h[0] xor j[3] xor j[2] xor j[1],
+                               h[1] xor h[0] xor j[3] xor j[2] xor j[1],
+                      h[2] xor h[1] xor h[0]          xor j[2] xor j[1],
+                      h[2] xor h[1]                            xor j[1],
+                      h[2]                            xor j[2],
+             h[3] xor h[2] xor h[1]                            xor j[1]
+           }
+   end ||
+   oa -> then 
+   --select oa then 
+      o <- (oa as byte)
+   end
+end
+
+
+procedure inversion_lowlatency(input i : byte ; output o : byte) is
+   channel aH,aL,b,c,d,e,f,g,h,j : array 4 of bit
+begin loop
+   iso(i, aH, aL) ||
+   aH -> then
+      aL -> then
+         add4(<- aH, <- aL, b) ||
+         b -> then
+            mul4(<- aL, <-b, e) ||
+            g -> then
+               mul4(<- aH, <- g, h) ||
+               mul4(<- b, <- g, j)
+            end
+         end
+      end ||
+      square4(<- aH, c)
+   end ||
+   mullambda4(c, d) ||
+   add4(d,e,f) ||
+   inv4(f,g) ||
+   inviso(h,j, o)
+end end
+
+procedure inversion(input i : byte ; output o : byte) is
+   channel aH,aL,b,c,d,e,f,g,h,j : array 4 of bit
+   channel aH2, aL2: array 4 of bit
+   variable aHb, aLb, dB, eB: array 4 of bit   
+begin
+   loop
+      iso(i, aH, aL) ||
+   
+      aH, aL -> then
+         aH2 <- aH ||
+         aL2 <- aL ||
+         square4(<- aH, c) ||
+         add4(<- aH, <- aL, b) ||
+         mul4(b, <- aL, e) 
+      end ||
+      mullambda4(c, d)
+   end
+      ||
+   loop
+      aH2 -> aHb ||
+      aL2 -> aLb || 
+      d -> dB || 
+      e -> eB ;
+     
+      add4(<- dB, <- eB, f) ||
+      inv4(f,g) ||
+      g -> then
+         mul4(<- aHb, <- g, h) ||
+         mul4(<- aLb, <- g, j)
+      end ||
+      inviso(h, j, o)
+   end 
+end
