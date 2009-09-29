@@ -1,6 +1,6 @@
 ;;; Balsa Project file
-;;; Created: Fri May 22 16:48:13 2009
-;;; By: koch@i7 (Linux)
+;;; Created: Tue Sep 29 12:07:09 2009
+;;; By: koch@koch32 (Linux)
 ;;; With balsa-mgr version: 0.7.0 (2004-12-20)
 ;;; Supplied with Balsa version: 3.5.1
 
@@ -18,6 +18,7 @@
                 )
             )
         )
+        "affine"
         "gfdouble"
         (top-level "gfmul"
             (test "multest" "gfmul"
@@ -27,6 +28,7 @@
                 )
             )
         )
+        "inversion"
         (top-level "mixcolumn"
             (test "test1" "mixcolumn"
                 (ports
