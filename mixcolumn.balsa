@@ -23,7 +23,7 @@ import [gfmul]
 procedure mixcolumn (input inp : array 0..3 of byte;
 	             output o : array 0..3 of byte) is
    array 16 of channel op : operands 
-   array 16 of channel res : array 8 of bit
+   array 16 of channel res : byte
    variable x : array 0..3 of byte
 --   constant m = {2,3,1,1,  1,2,3,1,  1,1,2,3,  3,1,1,2} : array 16 of byte
 begin
@@ -59,16 +59,16 @@ o[1] = i[0]*m[11] + i[1]*m[12] + i[2]*m[13] + i[3]*m[14]
       op[15] <- {(2 as array 8 of bit), (inp[3] as array 8 of bit)}
    end ||
    res[0], res[1], res[2], res[3] -> then
-      x[0] := (res[0] as byte) xor (res[1] as byte) xor (res[2] as byte) xor (res[3] as byte)
+      x[0] := res[0] xor res[1] xor res[2] xor res[3]
    end ||
    res[4], res[5], res[6], res[7] -> then
-      x[1] := (res[4] as byte) xor (res[5] as byte) xor (res[6] as byte) xor (res[7] as byte)
+      x[1] := res[4] xor res[5] xor res[6] xor res[7]
    end ||
    res[8], res[9], res[10], res[11] -> then
-      x[2] := (res[8] as byte) xor (res[9] as byte) xor (res[10] as byte) xor (res[11] as byte)
+      x[2] := res[8] xor res[9] xor res[10] xor res[11]
    end ||
    res[12], res[13], res[14], res[15] -> then
-      x[3] := (res[12] as byte) xor (res[13] as byte) xor (res[14] as byte) xor (res[15] as byte)
+      x[3] := res[12] xor res[13] xor res[14] xor res[15]
    end ;
    o <- x 
    end 

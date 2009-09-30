@@ -37,7 +37,7 @@ procedure aes(input inp : blocks;
    variable state, nextstate, key, nextkey : array 16 of byte
    variable rcon, nextrcon : byte
    channel togfdouble : byte
-   channel fromgfdouble : array 8 of bit
+   channel fromgfdouble : byte
    variable i, i_next : 4 bits
    variable done : bit
 begin
@@ -82,7 +82,7 @@ loop
            end
         end ||
         togfdouble <- rcon ||
-        fromgfdouble -> then nextrcon := (fromgfdouble as byte) end;
+        fromgfdouble -> nextrcon;
         --print "rcon: ", rcon;
 	--print "first word of exp key: ", nextkey[0..3];
         -- todo: Roll following into a loop
