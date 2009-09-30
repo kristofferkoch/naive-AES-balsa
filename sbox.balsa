@@ -24,5 +24,4 @@ procedure sbox (input i : byte; output o : byte) is
 begin
    inversion(i, inv) ||
    loop affine(inv, o) end
-
 end 

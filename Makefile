@@ -1,8 +1,8 @@
 ### Balsa Makefile
-### Created: Mon May 25 17:32:54 CEST 2009
-### By: koch@i7 (Linux)
+### Created: Wed Sep 30 08:59:42 CEST 2009
+### By: koch@koch32 (Linux)
 ### With balsa-make-makefile version: 3.5.1
-### Command: balsa-make-makefile -b -p /home/koch/Offentleg/naive-AES-balsa
+### Command: balsa-make-makefile -b -p /home/koch/balsa/naive-AES-balsa
 
 ### Must use a Bourne shell
 SHELL = /bin/sh
@@ -52,11 +52,15 @@ BALSAIMPORTPATH = -I .
 .balsa.breeze:
 	$(BALSAC) $(BALSACOPTS_COMPLETE) $*
 
-all: shiftrow.breeze sbox.breeze mixcolumns.breeze mixcolumn.breeze gfmul.breeze gfdouble.breeze aes.breeze addkey.breeze 
+all: test-mul4.breeze test-inversion.breeze shiftrow.breeze sbox.breeze mixcolumns.breeze mixcolumn.breeze inversion.breeze gfmul.breeze gfdouble.breeze gf4.breeze affine.breeze aes.breeze addkey.breeze 
 ### Balsa rules
 aes.breeze: addkey.breeze sbox.breeze shiftrow.breeze mixcolumns.breeze gfdouble.breeze
+inversion.breeze: gf4.breeze
 mixcolumn.breeze: gfmul.breeze
 mixcolumns.breeze: mixcolumn.breeze
+sbox.breeze: affine.breeze inversion.breeze
+test-inversion.breeze: inversion.breeze affine.breeze
+test-mul4.breeze: gf4.breeze
 
 ### Test harness rules
 test-mixcolumns-test.balsa: mixcolumns.breeze Project
@@ -113,12 +117,12 @@ sim-win-aes-simpletest: sim-pre-aes-simpletest
 .PHONY: depend clean very-clean ps cost help
 
 depend:
-	balsa-make-makefile -b -p /home/koch/Offentleg/naive-AES-balsa
+	balsa-make-makefile -b -p /home/koch/balsa/naive-AES-balsa
 
 clean:
 	$(RM)
-	$(RM) addkey.breeze aes.breeze gfdouble.breeze gfmul.breeze mixcolumn.breeze mixcolumns.breeze sbox.breeze shiftrow.breeze
-	$(RM) addkey.ps aes.ps gfdouble.ps gfmul.ps mixcolumn.ps mixcolumns.ps sbox.ps shiftrow.ps
+	$(RM) addkey.breeze aes.breeze affine.breeze gf4.breeze gfdouble.breeze gfmul.breeze inversion.breeze mixcolumn.breeze mixcolumns.breeze sbox.breeze shiftrow.breeze test-inversion.breeze test-mul4.breeze
+	$(RM) addkey.ps aes.ps affine.ps gf4.ps gfdouble.ps gfmul.ps inversion.ps mixcolumn.ps mixcolumns.ps sbox.ps shiftrow.ps test-inversion.ps test-mul4.ps
 	$(RM) test-mixcolumns-test.breeze
 	$(RM) test-test1.breeze
 	$(RM) test-multest.breeze
@@ -136,15 +140,20 @@ very-clean: clean
 	$(RM) test-aes-simpletest.hhh
 	$(RM_R) .libs
 
-ps: shiftrow.ps sbox.ps mixcolumns.ps mixcolumn.ps gfmul.ps gfdouble.ps aes.ps addkey.ps
+ps: test-mul4.ps test-inversion.ps shiftrow.ps sbox.ps mixcolumns.ps mixcolumn.ps inversion.ps gfmul.ps gfdouble.ps gf4.ps affine.ps aes.ps addkey.ps
 
-cost: shiftrow.breeze sbox.breeze mixcolumns.breeze mixcolumn.breeze gfmul.breeze gfdouble.breeze aes.breeze addkey.breeze
+cost: test-mul4.breeze test-inversion.breeze shiftrow.breeze sbox.breeze mixcolumns.breeze mixcolumn.breeze inversion.breeze gfmul.breeze gfdouble.breeze gf4.breeze affine.breeze aes.breeze addkey.breeze
+	breeze-cost test-mul4.breeze
+	breeze-cost test-inversion.breeze
 	breeze-cost shiftrow.breeze
 	breeze-cost sbox.breeze
 	breeze-cost mixcolumns.breeze
 	breeze-cost mixcolumn.breeze
+	breeze-cost inversion.breeze
 	breeze-cost gfmul.breeze
 	breeze-cost gfdouble.breeze
+	breeze-cost gf4.breeze
+	breeze-cost affine.breeze
 	breeze-cost aes.breeze
 	breeze-cost addkey.breeze
 

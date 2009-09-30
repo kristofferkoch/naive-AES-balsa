@@ -1,0 +1,72 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    naive-AES-balsa is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+
+import [balsa.types.basic]
+
+procedure mul4(input q,w : array 4 of bit; output o : array 4 of bit) is
+   channel q0w0, q0w1, q1w0, q1w1, q2w3, q3w2, q3w3, q0_xor_q2, w0_xor_w2, q1_xor_q3, w1_xor_w3, q0w0_xor_q1w1, q1w1_xor_q0w1, q3w3_xor_q2w3:bit
+begin
+   q,w -> then
+      q0w0 <- q[0] and w[0] ||
+      q0w1 <- q[0] and w[1] ||
+      q1w0 <- q[1] and w[0] ||
+      q1w1 <- q[1] and w[1] ||
+      q2w3 <- q[2] and w[3] ||
+      q3w2 <- q[3] and w[2] ||
+      q3w3 <- q[3] and w[3] ||
+   
+      q0_xor_q2 <- q[0] xor q[2] ||
+      w0_xor_w2 <- w[0] xor w[2] ||
+      q1_xor_q3 <- q[1] xor q[3] ||
+      w1_xor_w3 <- w[1] xor w[3] ||
+
+      select q0w0, q0w1, q1w0, q1w1, q2w3, q3w2, q3w3, q0_xor_q2, w0_xor_w2, q1_xor_q3, w1_xor_w3 then
+         q0w0_xor_q1w1 <- q0w0 xor q1w1 ||
+         q1w1_xor_q0w1 <- q1w1 xor q0w1 ||
+         q3w3_xor_q2w3 <- q3w3 xor q2w3 ||
+
+         q0w0_xor_q1w1, q1w1_xor_q0w1, q3w3_xor_q2w3 -> then
+            o <- {q0w0_xor_q1w1 xor q3w3_xor_q2w3 xor q3w2,
+                  q1w1_xor_q0w1 xor q1w0 xor q3w3 xor (q[2] and w[2]) xor q3w3_xor_q2w3 xor q3w2,
+                  (q1_xor_q3 and w1_xor_w3) xor (q0_xor_q2 and w0_xor_w2) xor q0w0_xor_q1w1,
+                  (q1_xor_q3 and w1_xor_w3) xor (q0_xor_q2 and w1_xor_w3) xor (q1_xor_q3 and w0_xor_w2) xor q1w1_xor_q0w1 xor q1w0}
+         end
+      end
+   end
+end
+
+procedure inv4(input i : array 4 of bit; output o : array 4 of bit) is
+   channel c012, c12, c03, c013, c13, c023, c123, c02 : bit
+begin
+   i -> then
+   --select i then
+      c012 <- i[0] and i[1] and i[2] ||
+      c12  <- i[1] and i[2] ||
+      c03  <- i[0] and i[3] ||
+      c013 <- i[0] and i[1] and i[3] ||
+      c023 <- i[0] and i[2] and i[3] ||
+      c13  <- i[1] and i[3] ||
+      c123 <- i[1] and i[2] and i[3] ||
+      c02  <- i[0] and i[2] ||
+      select c012, c12, c03, c013, c13, c023, c123, c02 then
+         o <- {i[0] xor i[1] xor i[2] xor c012 xor c12 xor c03 xor c013 xor c13 xor c023 xor c123,
+               i[1] xor i[2] xor i[3] xor c02 xor c013 xor c123,
+               i[2] xor c12 xor c03 xor c023 xor c123,
+               i[2] xor i[3] xor c03 xor c123}
+      end
+   end
+end

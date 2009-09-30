@@ -1,5 +1,5 @@
 ;;; Balsa Project file
-;;; Created: Tue Sep 29 12:07:09 2009
+;;; Created: Wed Sep 30 08:59:41 2009
 ;;; By: koch@koch32 (Linux)
 ;;; With balsa-mgr version: 0.7.0 (2004-12-20)
 ;;; Supplied with Balsa version: 3.5.1
@@ -19,6 +19,7 @@
             )
         )
         "affine"
+        "gf4"
         "gfdouble"
         (top-level "gfmul"
             (test "multest" "gfmul"
