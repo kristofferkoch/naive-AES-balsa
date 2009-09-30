@@ -16,12 +16,21 @@
 --)
 import [balsa.types.basic]
 
-import [affine]
-import [inversion]
 
-procedure sbox (input i : byte; output o : byte) is
-   channel inv : byte
+type A8_t is array 8 of bit
+
+procedure affine(input i : byte; output o : byte) is
 begin
-   inversion(i, inv) ||
-   loop affine(inv, o) end
-end 
+   --i -> then
+   select i then
+      o <- (A8_t {not (#i[0] xor #i[4] xor #i[5] xor #i[6] xor #i[7]),
+                  not (#i[0] xor #i[1] xor #i[5] xor #i[6] xor #i[7]),
+                       #i[0] xor #i[1] xor #i[2] xor #i[6] xor #i[7],
+                       #i[0] xor #i[1] xor #i[2] xor #i[3] xor #i[7],
+                       #i[0] xor #i[1] xor #i[2] xor #i[3] xor #i[4],
+                  not (#i[1] xor #i[2] xor #i[3] xor #i[4] xor #i[5]),
+                  not (#i[2] xor #i[3] xor #i[4] xor #i[5] xor #i[6]),
+                       #i[3] xor #i[4] xor #i[5] xor #i[6] xor #i[7]
+                  } as byte)
+   end
+end

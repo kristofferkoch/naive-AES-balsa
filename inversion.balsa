@@ -1,0 +1,126 @@
+(--
+    This file is part of naive-AES-balsa.
+
+    naive-AES-balsa is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    naive-AES-balsa is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with naive-AES-balsa.  If not, see <http://www.gnu.org/licenses/>.
+--)
+
+import [balsa.types.basic]
+
+import [gf4]
+
+
+
+procedure mullambda4(input i : array 4 of bit; output o : array 4 of bit) is
+begin
+   i -> then
+   --select i then
+      o <- {                  i[2],
+                                       i[3],
+            i[0] xor i[1] xor i[2] xor i[3],
+            i[0]          xor i[2]}
+   end
+end
+
+procedure square4(input i : array 4 of bit; output o : array 4 of bit) is
+begin
+   i -> then
+   --select i then
+      o <- {i[0] xor i[1]          xor i[3],
+                     i[1] xor i[2],
+                              i[2] xor i[3],
+                                       i[3]
+           }
+   end
+end
+
+procedure add4(input a,b : array 4 of bit; output o : array 4 of bit) is
+begin
+   a,b -> then
+   --select a,b then
+      o <- {a[0] xor b[0],
+            a[1] xor b[1],
+            a[2] xor b[2],
+            a[3] xor b[3]}
+   end
+end
+
+procedure iso(input i : byte ; output a,b : array 4 of bit) is
+begin
+   i -> then
+   --select i then
+      b  <- {          #i[6]                                         xor #i[1] xor #i[0],
+                       #i[6]           xor #i[4]                     xor #i[1],
+             #i[7]                     xor #i[4] xor #i[3] xor #i[2] xor #i[1],
+             #i[7] xor #i[6]                               xor #i[2] xor #i[1]
+            } ||
+      a  <- {#i[7]           xor #i[5]           xor #i[3] xor #i[2] xor #i[1],
+             #i[7]           xor #i[5]           xor #i[3] xor #i[2],
+             #i[7] xor #i[6]           xor #i[4] xor #i[3] xor #i[2] xor #i[1],
+             #i[7]           xor #i[5]
+            } 
+   end
+end
+
+procedure inviso(input h,j : array 4 of bit; output o : byte) is
+   type A8_t is array 8 of bit
+begin
+   h, j -> then
+   --select h, j then
+      o <- (A8_t {    h[2] xor h[1] xor h[0] xor j[2]                   xor j[0],
+                               h[1] xor h[0],
+            h[3]                   xor h[0] xor j[3] xor j[2] xor j[1],
+                              h[1] xor h[0] xor j[3] xor j[2] xor j[1],
+                     h[2] xor h[1] xor h[0]          xor j[2] xor j[1],
+                     h[2] xor h[1]                            xor j[1],
+                     h[2]                            xor j[2],
+            h[3] xor h[2] xor h[1]                            xor j[1]
+           } as byte)
+   end
+end
+
+procedure inversion(input i : byte ; output o : byte) is
+   channel aH,aL,b,c,d,e,f,g,h,j : array 4 of bit
+   channel aH2, b2: array 4 of bit
+   variable aHb, bB, dB, eB: array 4 of bit   
+begin
+   loop
+      iso(i, aH, aL) ||
+   
+      aH, aL -> then
+         aH2 <- aH ||
+         square4(<- aH, c) ||
+         add4(<- aH, <- aL, b) ||
+         b -> then 
+            mul4(<- b, <- aL, e) ||
+            b2 <- b
+         end 
+      end ||
+      mullambda4(c, d)
+   end
+      ||
+   loop
+      aH2 -> aHb ||
+      b2 -> bB || 
+      d -> dB || 
+      e -> eB ;
+
+      add4(<- dB, <- eB, f) ||
+      inv4(f,g) ||
+      g -> then
+         mul4(<- aHb, <- g, h) ||
+         mul4(<- bB, <- g, j)
+      end ||
+      inviso(h, j, o)
+   end 
+end

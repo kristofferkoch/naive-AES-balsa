@@ -1,0 +1,26 @@
+import [gf4]
+
+procedure balsa is
+   constant table = {0,1,3,2,0xf,0xc,9,0xb,0xa,6,8,7,5,0xe,0xd,4}: array 16 of nibble
+   variable i : nibble
+   channel o: array 4 of bit
+   variable success: bit
+begin
+   i := 0 || success := 1;
+   loop
+      [inv4(<- #i, o) ||
+      o -> then
+          if table[i] /= (o as nibble) then
+             success := 0;
+             print i, ": ", table[i], " /= ", (o as nibble)
+          end
+      end];
+      i := (i + 1 as nibble)
+   while i /= 0
+   end;
+   if success = 1 then
+      print "TEST PASSED"
+   else
+      print "TEST FAILED"
+   end
+end
