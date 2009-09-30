@@ -18,7 +18,7 @@
 import [balsa.types.basic]
 
 import [addkey]
-import [sbox-table]
+import [sbox]
 import [shiftrow]
 import [mixcolumns]
 import [gfdouble]
