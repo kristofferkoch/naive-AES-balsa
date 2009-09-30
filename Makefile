@@ -1,8 +1,8 @@
 ### Balsa Makefile
-### Created: Mon May 25 17:32:54 CEST 2009
-### By: koch@i7 (Linux)
+### Created: Wed Sep 30 10:41:43 CEST 2009
+### By: koch@koch32 (Linux)
 ### With balsa-make-makefile version: 3.5.1
-### Command: balsa-make-makefile -b -p /home/koch/Offentleg/naive-AES-balsa
+### Command: balsa-make-makefile -b -p /home/koch/balsa/naive-AES-balsa
 
 ### Must use a Bourne shell
 SHELL = /bin/sh
@@ -52,9 +52,9 @@ BALSAIMPORTPATH = -I .
 .balsa.breeze:
 	$(BALSAC) $(BALSACOPTS_COMPLETE) $*
 
-all: shiftrow.breeze sbox.breeze mixcolumns.breeze mixcolumn.breeze gfmul.breeze gfdouble.breeze aes.breeze addkey.breeze 
+all: shiftrow.breeze sbox-table.breeze mixcolumns.breeze mixcolumn.breeze gfmul.breeze gfdouble.breeze aes.breeze addkey.breeze 
 ### Balsa rules
-aes.breeze: addkey.breeze sbox.breeze shiftrow.breeze mixcolumns.breeze gfdouble.breeze
+aes.breeze: addkey.breeze sbox-table.breeze shiftrow.breeze mixcolumns.breeze gfdouble.breeze
 mixcolumn.breeze: gfmul.breeze
 mixcolumns.breeze: mixcolumn.breeze
 
@@ -113,12 +113,12 @@ sim-win-aes-simpletest: sim-pre-aes-simpletest
 .PHONY: depend clean very-clean ps cost help
 
 depend:
-	balsa-make-makefile -b -p /home/koch/Offentleg/naive-AES-balsa
+	balsa-make-makefile -b -p /home/koch/balsa/naive-AES-balsa
 
 clean:
 	$(RM)
-	$(RM) addkey.breeze aes.breeze gfdouble.breeze gfmul.breeze mixcolumn.breeze mixcolumns.breeze sbox.breeze shiftrow.breeze
-	$(RM) addkey.ps aes.ps gfdouble.ps gfmul.ps mixcolumn.ps mixcolumns.ps sbox.ps shiftrow.ps
+	$(RM) addkey.breeze aes.breeze gfdouble.breeze gfmul.breeze mixcolumn.breeze mixcolumns.breeze sbox-table.breeze shiftrow.breeze
+	$(RM) addkey.ps aes.ps gfdouble.ps gfmul.ps mixcolumn.ps mixcolumns.ps sbox-table.ps shiftrow.ps
 	$(RM) test-mixcolumns-test.breeze
 	$(RM) test-test1.breeze
 	$(RM) test-multest.breeze
@@ -136,11 +136,11 @@ very-clean: clean
 	$(RM) test-aes-simpletest.hhh
 	$(RM_R) .libs
 
-ps: shiftrow.ps sbox.ps mixcolumns.ps mixcolumn.ps gfmul.ps gfdouble.ps aes.ps addkey.ps
+ps: shiftrow.ps sbox-table.ps mixcolumns.ps mixcolumn.ps gfmul.ps gfdouble.ps aes.ps addkey.ps
 
-cost: shiftrow.breeze sbox.breeze mixcolumns.breeze mixcolumn.breeze gfmul.breeze gfdouble.breeze aes.breeze addkey.breeze
+cost: shiftrow.breeze sbox-table.breeze mixcolumns.breeze mixcolumn.breeze gfmul.breeze gfdouble.breeze aes.breeze addkey.breeze
 	breeze-cost shiftrow.breeze
-	breeze-cost sbox.breeze
+	breeze-cost sbox-table.breeze
 	breeze-cost mixcolumns.breeze
 	breeze-cost mixcolumn.breeze
 	breeze-cost gfmul.breeze
