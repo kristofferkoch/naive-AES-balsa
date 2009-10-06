@@ -25,46 +25,21 @@ import [mixcolumn]
 -- 2 6 A E
 -- 3 7 B F
 
-procedure mixcolumns (input i : array 16 of byte;
-	              output o : array 16 of byte) is
-   array 4 of channel col, mix : array 4 of byte
-   variable tmp : array 4 of 32 bits
-   variable tmp2 : array 16 of byte
+procedure mixcolumns (input i : 128 bits;
+	              output o : 128 bits) is
+   array 4 of channel col, mix : 32 bits
 begin
    for || k in 0..3 then
       mixcolumn(col[k], mix[k])
    end ||
    loop i -> then
-      col[0] <- i[0..3] ||
-      col[1] <- i[4..7] ||
-      col[2] <- i[8..11] ||
-      col[3] <- i[12..15] ||
-      mix[0] -> then tmp[0] := (mix[0] as 32 bits) end ||
-      mix[1] -> then tmp[1] := (mix[1] as 32 bits) end ||
-      mix[2] -> then tmp[2] := (mix[2] as 32 bits) end ||
-      mix[3] -> then tmp[3] := (mix[3] as 32 bits) end;
-      -- the following is quite ugly, but maybe due to a bug in balsa, my 128-bit integers get truncated to 64-bit
-      tmp2[0] := (tmp[0] as array 4 of byte)[0] ||
-      tmp2[1] := (tmp[0] as array 4 of byte)[1] ||
-      tmp2[2] := (tmp[0] as array 4 of byte)[2] ||
-      tmp2[3] := (tmp[0] as array 4 of byte)[3] ||
-      tmp2[4] := (tmp[1] as array 4 of byte)[0] ||
-      tmp2[5] := (tmp[1] as array 4 of byte)[1] ||
-      tmp2[6] := (tmp[1] as array 4 of byte)[2] ||
-      tmp2[7] := (tmp[1] as array 4 of byte)[3] ||
-      tmp2[8] := (tmp[2] as array 4 of byte)[0] ||
-      tmp2[9] := (tmp[2] as array 4 of byte)[1] ||
-      tmp2[10] := (tmp[2] as array 4 of byte)[2] ||
-      tmp2[11] := (tmp[2] as array 4 of byte)[3] ||
-      tmp2[12] := (tmp[3] as array 4 of byte)[0] ||
-      tmp2[13] := (tmp[3] as array 4 of byte)[1] ||
-      tmp2[14] := (tmp[3] as array 4 of byte)[2] ||
-      tmp2[15] := (tmp[3] as array 4 of byte)[3];
-      --print (tmp[0] as array 4 of byte);
-      --print (tmp[1] as array 4 of byte);
-      --print (tmp[2] as array 4 of byte);
-      --print (tmp[3] as array 4 of byte);
-      o <- tmp2
+      col[0] <- (#i[0..31] as 32 bits) ||
+      col[1] <- (#i[32..63] as 32 bits) ||
+      col[2] <- (#i[64..95] as 32 bits) ||
+      col[3] <- (#i[96..127] as 32 bits) ||
+      select mix[0], mix[1], mix[2], mix[3] then
+         o <- ((#(mix[0]) @ #(mix[1]) @ #(mix[2]) @ #(mix[3])) as 128 bits)
+      end
    end end
 end
 

@@ -16,104 +16,151 @@
 --)
 
 import [balsa.types.basic]
+import [balsa.sim.string]
 
-import [addkey]
 import [sbox]
 import [shiftrow]
-import [mixcolumns]
+import [mixcolumn]
 import [gfdouble]
 
-type blocks is record
-   data : array 16 of byte ;
-   state : array 16 of byte
+type instruction is enumeration
+   load_data, load_key, add_key,
+   sub_bytes, mix_col_expand, skip_mix_expand, output_data
 end
 
-procedure aes(input inp : blocks;
-               output o : blocks) is
-   channel toadd : twomatrices
-   channel added : array 16 of byte
-   array 16 of channel tosbox, fromsbox : byte
-   channel toshiftrow, fromshiftrow, tomix, frommix : array 16 of byte
-   variable state, nextstate, key, nextkey : array 16 of byte
-   variable rcon, nextrcon : byte
-   channel togfdouble : byte
-   channel fromgfdouble : byte
-   variable i, i_next : 4 bits
-   variable done : bit
+type rows is array 4 of 32 bits
+type bytes is array 16 of byte
+
+procedure aes_ctrl(output instruction:instruction) is
+   variable i, ii : 3 bits
 begin
-addkey(toadd, added) ||
-for || k in 0..15 then
-   sbox(tosbox[k], fromsbox[k])
-end ||
-shiftrow(toshiftrow, fromshiftrow) ||
-mixcolumns(tomix, frommix) ||
-gfdouble(togfdouble, fromgfdouble) ||
-loop 
-   inp -> then
-      toadd <- {inp.data, inp.state} ||
-      nextkey := inp.state
-      -- || print "Using key ", inp.state, " for first round"
-   end ||
-   added -> state ||
-   rcon := 1 ||
-   i := 0;
-   loop 
-      key := nextkey ||
-      i_next := (i + 1 as 4 bits) ||
-      for || k in 0..15 then
-         tosbox[k] <- state[k] ||
-         fromsbox[k] -> nextstate[k]
+   loop
+      instruction <- load_key;
+      instruction <- load_data;
+      instruction <- add_key || i := 0;
+      
+      loop
+         instruction <- sub_bytes;
+         instruction <- mix_col_expand || ii := (i+1 as 3 bits);
+         instruction <- add_key        || i  := ii
+      while i /= 0
       end;
-      --print "After sbox: ", nextstate;
-      [--key schedule
-        --print "Into sbox: ", key[13]," ",key[14]," ",key[15]," ",key[12];
-	tosbox[0] <- key[13] ||
-        tosbox[1] <- key[14] ||
-        tosbox[2] <- key[15] ||
-        tosbox[3] <- key[12] ||
-        fromsbox[0] -> then
-           --print "fromsbox[0]: ", fromsbox[0];
-           nextkey[0] := fromsbox[0] xor key[0] xor rcon
-        end ||
-        for || k in 1..3 then
-           fromsbox[k] -> then
-              --print "fromsbox[",k,"]: ", fromsbox[k];
-              nextkey[k] := fromsbox[k] xor key[k]
-           end
-        end ||
-        togfdouble <- rcon ||
-        fromgfdouble -> nextrcon;
-        --print "rcon: ", rcon;
-	--print "first word of exp key: ", nextkey[0..3];
-        -- todo: Roll following into a loop
-        for || k in 4..7 then
-           nextkey[k] := key[k] xor nextkey[k-4]
-        end;
-	for || k in 8..11 then
-           nextkey[k] := key[k] xor nextkey[k-4]
-        end;
-	for || k in 12..15 then
-           nextkey[k] := key[k] xor nextkey[k-4]
-        end
-      ]||[
-      toshiftrow <- nextstate ||
-      fromshiftrow -> state ||
-      done := i = 9;
-      --print "After shift: ", state;
-      if done then
-         nextstate := state
-      else
-         tomix <- state ||
-         frommix -> nextstate
-      end ];
-      --print "After mix: ", nextstate;
-      --print "Using key ", nextkey, " for round ", i+1 ;
-      toadd <- {nextstate, nextkey} ||
-      added -> state ||
-      rcon := nextrcon ||
-      i := i_next
-      --;print "State is ", state, " after round ", i-1
-   while done = 0 end;
-   o <- {state, key}
+
+
+      instruction <- sub_bytes;
+      instruction <- skip_mix_expand;
+      instruction <- add_key;
+      instruction <- output_data
+   end
 end
+
+procedure aes_data(input i : 32 bits;
+                   input instruction: instruction;
+                   output o : 32 bits) is
+   variable reg_rows, reg_rows1, reg_key, reg_key1:rows
+   channel tokeyexpand : rows
+   variable reg_bytes:bytes
+   array 4 of channel tosbox, fromsbox1:byte
+   channel fromsbox:32 bits
+   channel tomix, frommix:32 bits
+   variable rcon, rcon1: byte
+   channel torcon, fromrcon: byte
+
+begin
+   loop
+      instruction -> then
+         case instruction of
+            load_data then
+               --print "loading data";
+               for ; j in 0..3 then
+                  i -> reg_rows[j]
+               end
+               --; print "data is ",NumberToString(128 bits, (#reg_rows as 128 bits), 16, 8, 1)
+         |  load_key then
+               --print "loading key";
+               for ; j in 0..3 then
+                  i -> reg_key[j]
+               end ||
+               rcon := 0
+               --; print "key is ", NumberToString(128 bits, (#reg_key as 128 bits), 16, 8, 1)
+         |  add_key then
+               --print "adding key ", NumberToString(128 bits, (#reg_key as 128 bits), 16, 8, 1);
+               for || i in 0..3 then
+                  reg_rows1[i] := reg_rows[i] xor reg_key[i]
+               end ||
+               reg_key1 := reg_key
+         |  sub_bytes then
+               tosbox[0] <- (#reg_rows[0..7] as byte) ||
+               tosbox[1] <- (#reg_rows[40..47] as byte) ||
+               tosbox[2] <- (#reg_rows[80..87] as byte) ||
+               tosbox[3] <- (#reg_rows[120..127] as byte) ||
+               fromsbox -> reg_rows1[0];
+
+               tosbox[0] <- (#reg_rows[32..39] as byte) ||
+               tosbox[1] <- (#reg_rows[72..79] as byte) ||
+               tosbox[2] <- (#reg_rows[112..119] as byte) ||
+               tosbox[3] <- (#reg_rows[24..31] as byte) ||
+               fromsbox -> reg_rows1[1];
+
+               tosbox[0] <- (#reg_rows[64..71] as byte) ||
+               tosbox[1] <- (#reg_rows[104..111] as byte) ||
+               tosbox[2] <- (#reg_rows[16..23] as byte) ||
+               tosbox[3] <- (#reg_rows[56..63] as byte) ||
+               fromsbox -> reg_rows1[2];
+
+               tosbox[0] <- (#reg_rows[96..103] as byte) ||
+               tosbox[1] <- (#reg_rows[8..15] as byte) ||
+               tosbox[2] <- (#reg_rows[48..55] as byte) ||
+               tosbox[3] <- (#reg_rows[88..95] as byte) ||
+               fromsbox -> reg_rows1[3]
+         |  mix_col_expand..skip_mix_expand then
+               if instruction = mix_col_expand then
+                  for ; i in 0..3 then
+                     tomix <- reg_rows1[i] ||
+                     frommix -> reg_rows[i]
+                  end
+               else
+                  reg_rows := reg_rows1
+               end ||
+               tosbox[0] <- (#(reg_key1[3])[8..15] as byte) ||
+               tosbox[1] <- (#(reg_key1[3])[16..23] as byte) ||
+               tosbox[2] <- (#(reg_key1[3])[24..31] as byte) ||
+               tosbox[3] <- (#(reg_key1[3])[0..7] as byte) ||
+               [
+                  fromsbox -> then 
+                     reg_key[0] := fromsbox xor reg_key1[0] xor (rcon as 32 bits)
+                  end ||
+                  torcon <- rcon || fromrcon -> rcon1;
+                  reg_key[1] := reg_key1[1] xor reg_key[0];
+                  reg_key[2] := reg_key1[2] xor reg_key[1];
+                  reg_key[3] := reg_key1[3] xor reg_key[2]
+               ]
+         |  output_data then
+               for ; i in 0..3 then
+                  o <- reg_rows[i]
+               end
+         else
+            print "invalid instruction"
+         end
+      end
+   end ||
+   for || i in 0..3 then
+      sbox(tosbox[i], fromsbox1[i])
+   end ||
+   loop
+      select fromsbox1[0], fromsbox1[1], fromsbox1[2], fromsbox1[3] then
+         fromsbox <- ((#(fromsbox1[0]) @ #(fromsbox1[1]) @ #(fromsbox1[2]) @ #(fromsbox1[3])) as 32 bits)
+      end
+   end ||
+   mixcolumn(tomix, frommix) ||
+   loop gfdouble(torcon, fromrcon) end
+end
+
+
+procedure aes(input i : 32 bits;
+              output o : 32 bits) is
+   channel instruction : instruction
+begin
+   aes_data(i, instruction, o) ||
+   aes_ctrl(instruction)
 end

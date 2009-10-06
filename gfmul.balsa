@@ -17,48 +17,39 @@
 
 import [balsa.types.basic]
 
+import [gfdouble]
+
+procedure gfmul8_2 (input inp : byte; output o : byte) is
+begin
+   gfdouble(inp, o)
+end
+
+procedure gfmul8_3 (input inp : byte; output o : byte) is
+   channel imm:byte
+begin
+   inp -> then 
+      gfdouble(<- inp, imm) || 
+      imm -> then
+         o <- imm xor inp
+      end
+   end
+end
+
 type operands is record
    a : array 8 of bit;
    b : array 8 of bit
 end
 
-(--function gfmul_rot(i : array 8 of bit) =
-        {i[7], 
-         i[0] xor i[7],
-         i[1],
-         i[2] xor i[7],
-         i[3] xor i[7],
-         i[4],
-         i[5],
-         i[6]
-        }
-: array 8 of bit--)
-
-procedure gfmul_rot(input i : array 8 of bit ;
-                    output o : array 8 of bit) is
-begin
-i -> then
-   o <- {i[7], 
-         i[0] xor i[7],
-         i[1],
-         i[2] xor i[7],
-         i[3] xor i[7],
-         i[4],
-         i[5],
-         i[6]
-        }
-end
-end 
 -- based on http://edipermadi.wordpress.com/2008/02/18/aes-finite-field-multiplication-on-logic-gates/
 procedure gfmul (input inp : operands;
                  output o  : byte) is
-   array 1..7 of channel stage: array 8 of bit
+   array 1..7 of channel stage: byte
    array 0..7 of channel andg: byte
    type A8_t is array 8 of bit
 begin
 loop
    inp -> then 
-      gfmul_rot(<- inp.b, stage[1]) ||
+      gfdouble(<- (inp.b as byte), stage[1]) ||
       if inp.a[0] = 1 then
          andg[0] <- (inp.b as byte)
       else
@@ -66,9 +57,9 @@ loop
       end ||
       for || k in 1..6 then
          stage[k] -> then
-            gfmul_rot(<- stage[k], stage[k+1]) ||
+            gfdouble(<- stage[k], stage[k+1]) ||
             if inp.a[k] = 1 then
-               andg[k] <- (stage[k] as byte)
+               andg[k] <- stage[k]
             else
                andg[k] <- 0
             end
@@ -76,7 +67,7 @@ loop
       end ||
       stage[7] -> then
          if inp.a[7] = 1 then
-            andg[7] <- (stage[7] as byte)
+            andg[7] <- stage[7]
          else
             andg[7] <- 0
          end

@@ -1,0 +1,16 @@
+(--
+    Balsa test harness
+    Created: Wed Sep 30 12:00:34 CEST 2009
+    By: koch@i7 (Linux)
+    With balsa-make-test version: 3.5.1
+    Command: balsa-md -b -I . -p . run-sbox-test
+--)
+
+import [balsa.sim.portio]
+import [test-sbox]
+
+procedure balsa
+is
+begin
+  balsa ()
+end

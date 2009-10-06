@@ -17,14 +17,12 @@
 
 import [balsa.types.basic]
 
-import [gfmul]
+import [gfdouble]
 
 
-procedure mixcolumn (input inp : array 0..3 of byte;
-	             output o : array 0..3 of byte) is
-   array 16 of channel op : operands 
-   array 16 of channel res : byte
-   variable x : array 0..3 of byte
+procedure mixcolumn (input inp : 32 bits;
+	             output o : 32 bits) is
+   channel inp0_2, inp1_3, inp1_2, inp2_3, inp2_2, inp3_3, inp0_3, inp3_2:byte
 --   constant m = {2,3,1,1,  1,2,3,1,  1,1,2,3,  3,1,1,2} : array 16 of byte
 begin
 (--
@@ -33,43 +31,26 @@ o[1] = i[0]*m[4] + i[1]*m[5] + i[2]*m[6] + i[3]*m[6]
 o[1] = i[0]*m[7] + i[1]*m[8] + i[2]*m[9] + i[3]*m[10]
 o[1] = i[0]*m[11] + i[1]*m[12] + i[2]*m[13] + i[3]*m[14]
 --)
-   for || k in 0..15 then
-      gfmul(op[k], res[k])
-   end ||
    loop 
    inp -> then
-      op[0] <- {(2 as array 8 of bit), (inp[0] as array 8 of bit)} ||
-      op[1] <- {(3 as array 8 of bit), (inp[1] as array 8 of bit)} ||
-      op[2] <- {(1 as array 8 of bit), (inp[2] as array 8 of bit)} ||
-      op[3] <- {(1 as array 8 of bit), (inp[3] as array 8 of bit)} ||
-
-      op[4] <- {(1 as array 8 of bit), (inp[0] as array 8 of bit)} ||
-      op[5] <- {(2 as array 8 of bit), (inp[1] as array 8 of bit)} ||
-      op[6] <- {(3 as array 8 of bit), (inp[2] as array 8 of bit)} ||
-      op[7] <- {(1 as array 8 of bit), (inp[3] as array 8 of bit)} ||
-
-      op[8] <- {(1 as array 8 of bit), (inp[0] as array 8 of bit)} ||
-      op[9] <- {(1 as array 8 of bit), (inp[1] as array 8 of bit)} ||
-      op[10] <- {(2 as array 8 of bit), (inp[2] as array 8 of bit)} ||
-      op[11] <- {(3 as array 8 of bit), (inp[3] as array 8 of bit)} ||
-
-      op[12] <- {(3 as array 8 of bit), (inp[0] as array 8 of bit)} ||
-      op[13] <- {(1 as array 8 of bit), (inp[1] as array 8 of bit)} ||
-      op[14] <- {(1 as array 8 of bit), (inp[2] as array 8 of bit)} ||
-      op[15] <- {(2 as array 8 of bit), (inp[3] as array 8 of bit)}
-   end ||
-   res[0], res[1], res[2], res[3] -> then
-      x[0] := res[0] xor res[1] xor res[2] xor res[3]
-   end ||
-   res[4], res[5], res[6], res[7] -> then
-      x[1] := res[4] xor res[5] xor res[6] xor res[7]
-   end ||
-   res[8], res[9], res[10], res[11] -> then
-      x[2] := res[8] xor res[9] xor res[10] xor res[11]
-   end ||
-   res[12], res[13], res[14], res[15] -> then
-      x[3] := res[12] xor res[13] xor res[14] xor res[15]
-   end ;
-   o <- x 
+      gfdouble(<-(#inp[0..7] as byte),   inp0_2) ||
+      gfdouble(<-(#inp[8..15] as byte),  inp1_2) ||
+      gfdouble(<-(#inp[16..23] as byte), inp2_2) ||
+      gfdouble(<-(#inp[24..31] as byte), inp3_2) ||
+      
+      select inp0_2, inp1_2, inp2_2, inp3_2 then
+         inp0_3 <- inp0_2 xor (#inp[0..7] as byte) ||
+         inp1_3 <- inp1_2 xor (#inp[8..15] as byte) ||
+         inp2_3 <- inp2_2 xor (#inp[16..23] as byte) ||
+         inp3_3 <- inp3_2 xor (#inp[24..31] as byte) ||
+      
+         inp0_3, inp1_3, inp2_3, inp3_3 -> then
+            o <- (#(inp0_2 xor inp1_3 xor (#inp[16..23] as byte) xor (#inp[24..31] as byte)) @
+                  #((#inp[0..7] as byte) xor inp1_2 xor inp2_3 xor (#inp[24..31] as byte)) @
+                  #((#inp[0..7] as byte) xor (#inp[8..15] as byte) xor inp2_2 xor inp3_3) @
+                  #(inp0_3 xor (#inp[8..15] as byte) xor (#inp[16..23] as byte) xor inp3_2) as 32 bits)
+         end
+      end
+   end
    end 
 end

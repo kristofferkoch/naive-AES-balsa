@@ -1,0 +1,18 @@
+import [mixcolumn]
+import [balsa.sim.string]
+
+procedure balsa is
+   channel inp, outp : 32 bits
+begin
+   mixcolumn(inp, outp) ||
+   -- TODO: one vector is maybe too little?
+   inp <- 0x305dbfd4 ||
+   select outp then
+      if outp = 0xe5816604 then
+         print "TEST PASSED"
+      else
+         print "0x",NumberToString(32 bits, outp, 16, 0, 1);
+         print "TEST FAILED"
+      end
+   end
+end

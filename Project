@@ -1,6 +1,6 @@
 ;;; Balsa Project file
-;;; Created: Wed Sep 30 08:59:41 2009
-;;; By: koch@koch32 (Linux)
+;;; Created: Thu Oct  1 20:22:48 2009
+;;; By: koch@i7 (Linux)
 ;;; With balsa-mgr version: 0.7.0 (2004-12-20)
 ;;; Supplied with Balsa version: 3.5.1
 
@@ -13,8 +13,8 @@
         (top-level "aes"
             (test "aes-simpletest" "aes"
                 (ports
-                    (input-port "inp" file "aes.dat")
-                    (output-port "o" log "")
+                    (input-port "i" file "aes.dat")
+                    (output-port "o" log "0" "16" "0" "1")
                 )
             )
         )
@@ -48,5 +48,9 @@
         )
         "sbox"
         "shiftrow"
+        (top-level "test-sbox"
+            (test "test-sbox-run" "balsa1"
+            )
+        )
     )
 )
