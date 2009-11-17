@@ -86,8 +86,8 @@ begin
                ; print "key is ", NumberToString(128 bits, (#reg_key as 128 bits), 16, 8, 1)
          |  add_key then
                print "adding key ", NumberToString(128 bits, (#reg_key as 128 bits), 16, 8, 1);
-               [for || i in 0..3 then
-                  reg_rows1[i] := reg_rows[i] xor reg_key[i]
+               [for || j in 0..3 then
+                  reg_rows1[j] := reg_rows[j] xor reg_key[j]
                end ||
                reg_key1 := reg_key];
                reg_rows := reg_rows1
@@ -118,10 +118,11 @@ begin
 	       ; print "data is after shiftrows ",NumberToString(128 bits, (#reg_rows1 as 128 bits), 16, 8, 1)
          |  mix_col_expand..skip_mix_expand then
                if instruction = mix_col_expand then
-                  for ; i in 0..3 then
-                     tomix <- reg_rows1[i] ||
-                     frommix -> reg_rows[i]
+                  for ; j in 0..3 then
+                     tomix <- reg_rows1[j] ||
+                     frommix -> reg_rows[j]
                   end
+	       ; print "data is after mixcols ",NumberToString(128 bits, (#reg_rows as 128 bits), 16, 8, 1)
                else
                   reg_rows := reg_rows1
                end ||

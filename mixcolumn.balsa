@@ -36,10 +36,10 @@ o[1] = i[0]*m[11] + i[1]*m[12] + i[2]*m[13] + i[3]*m[14]
       local
          channel i0, i1, i2, i3 : byte
       begin
-         i0 <- (#inp[0..7] as byte) ||
-         i1 <- (#inp[8..15] as byte) ||
-         i2 <- (#inp[16..23] as byte) ||
-         i3 <- (#inp[24..31] as byte) ||
+         i0 <- (#inp[24..31] as byte) ||
+         i1 <- (#inp[16..23] as byte) ||
+         i2 <- (#inp[8..15] as byte) ||
+         i3 <- (#inp[0..7] as byte) ||
          gfdouble(i0, inp0_2) ||
          gfdouble(i1, inp1_2) ||
          gfdouble(i2, inp2_2) ||
@@ -47,16 +47,16 @@ o[1] = i[0]*m[11] + i[1]*m[12] + i[2]*m[13] + i[3]*m[14]
       end ||
       
       select inp0_2, inp1_2, inp2_2, inp3_2 then
-         inp0_3 <- inp0_2 xor (#inp[0..7] as byte) ||
-         inp1_3 <- inp1_2 xor (#inp[8..15] as byte) ||
-         inp2_3 <- inp2_2 xor (#inp[16..23] as byte) ||
-         inp3_3 <- inp3_2 xor (#inp[24..31] as byte) ||
+         inp0_3 <- inp0_2 xor (#inp[24..31] as byte) ||
+         inp1_3 <- inp1_2 xor (#inp[16..23] as byte) ||
+         inp2_3 <- inp2_2 xor (#inp[8..15] as byte) ||
+         inp3_3 <- inp3_2 xor (#inp[0..7] as byte) ||
       
          inp0_3, inp1_3, inp2_3, inp3_3 -> then
-            o <- (#(inp0_2 xor inp1_3 xor (#inp[16..23] as byte) xor (#inp[24..31] as byte)) @
-                  #((#inp[0..7] as byte) xor inp1_2 xor inp2_3 xor (#inp[24..31] as byte)) @
-                  #((#inp[0..7] as byte) xor (#inp[8..15] as byte) xor inp2_2 xor inp3_3) @
-                  #(inp0_3 xor (#inp[8..15] as byte) xor (#inp[16..23] as byte) xor inp3_2) as 32 bits)
+            o <- (#(inp0_3 xor (#inp[16..23] as byte) xor (#inp[8..15] as byte) xor inp3_2) @
+                    #((#inp[24..31] as byte) xor (#inp[16..23] as byte) xor inp2_2 xor inp3_3) @
+                    #((#inp[24..31] as byte) xor inp1_2 xor inp2_3 xor (#inp[0..7] as byte)) @
+                    #(inp0_2 xor inp1_3 xor (#inp[8..15] as byte) xor (#inp[0..7] as byte)) as 32 bits)
          end
       end
    end
