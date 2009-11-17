@@ -19,14 +19,14 @@ begin
   -- BalsaInputPortFromFile (blocks, "inp", file (-- <- FileOpen ("aes.dat", read) --), inp) ||
   -- BalsaOutputPortToLog (blocks, "o", o)
   begin
-     inp <- 0x09cf4f3c;
-     inp <- 0xabf71588;
-     inp <- 0x28aed2a6;
-     inp <- 0x2b7e1516;
-     inp <- 0xe0370734;
-     inp <- 0x313198a2;
-     inp <- 0x885a308d;
-     inp <- 0x3243f6a8
+inp <- 0x2b7e1516;
+inp <- 0x28aed2a6;
+inp <- 0xabf71588;
+inp <- 0x09cf4f3c;
+inp <- 0x3243f6a8;
+inp <- 0x885a308d;
+inp <- 0x313198a2;
+inp <- 0xe0370734
   end ||
   loop
      o -> then
