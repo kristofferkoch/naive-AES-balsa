@@ -1,0 +1,22 @@
+(--
+    Balsa test harness
+    Created: Thu Sep 24 10:33:12 CEST 2009
+    By: koch@i7 (Linux)
+    With balsa-make-test version: 3.5.1
+    Command: balsa-md -b -I . -p . aes-simpletest
+--)
+
+import [teak.sim.portio]
+import [aes]
+
+procedure balsa
+is
+  channel inp : blocks
+  channel o : blocks
+  channel file : File
+begin
+  aes (inp, o) ||
+  file <- FileOpen ("aes.dat", read) ||
+  BalsaInputPortFromFile (blocks, "inp", file (-- <- FileOpen ("aes.dat", read) --), inp) ||
+  BalsaOutputPortToLog (blocks, "o", o)
+end

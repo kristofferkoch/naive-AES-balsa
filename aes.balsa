@@ -24,14 +24,14 @@ import [mixcolumn]
 import [gfdouble]
 
 type instruction is enumeration
-   load_data, load_key, add_key,
+   load_data=0, load_key=1, load_key128=1, add_key,
    sub_bytes, mix_col_expand, skip_mix_expand, output_data
 end
 
 type rows is array 4 of 32 bits
 type bytes is array 16 of byte
 
-procedure aes_ctrl(output instruction:instruction) is
+procedure aes_ctrl(output instruction : instruction) is
    variable i, ii : 3 bits
 begin
    loop
@@ -55,16 +55,16 @@ begin
 end
 
 procedure aes_data(input i : 32 bits;
-                   input instruction: instruction;
+                   input instruction : instruction;
                    output o : 32 bits) is
-   variable reg_rows, reg_rows1, reg_key, reg_key1:rows
+   variable reg_rows, reg_rows1, reg_key, reg_key1 : rows
    channel tokeyexpand : rows
-   variable reg_bytes:bytes
-   array 4 of channel tosbox, fromsbox1:byte
-   channel fromsbox:32 bits
-   channel tomix, frommix:32 bits
-   variable rcon, rcon1: byte
-   channel torcon, fromrcon: byte
+   variable reg_bytes : bytes
+   array 4 of channel tosbox, fromsbox1 : byte
+   channel fromsbox : 32 bits
+   channel tomix, frommix : 32 bits
+   variable rcon, rcon1 : byte
+   channel torcon, fromrcon : byte
 
 begin
    loop

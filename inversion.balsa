@@ -90,19 +90,31 @@ begin
 end
 
 procedure inversion(input i : byte ; output o : byte) is
-   channel aH,aL,b,c,d,e,f,g,h,j : array 4 of bit
-   channel aH2, b2: array 4 of bit
-   variable aHb, bB, dB, eB: array 4 of bit   
+   channel aH,aL,b,c,d,e,f,g,h,j,aH2,b2 : array 4 of bit
+   variable aHb, bB, dB, eB : array 4 of bit   
 begin
    loop
       iso(i, aH, aL) ||
    
       aH, aL -> then
          aH2 <- aH ||
-         square4(<- aH, c) ||
-         add4(<- aH, <- aL, b) ||
+         local
+            channel aH_1,aH_2, aL_1 : array 4 of bit
+         begin
+            aH_1 <- aH ||
+            aH_2 <- aH ||
+            aL_1 <- aL ||
+            square4(aH_1, c) ||
+            add4(aH_2, aL_1, b)
+         end ||
          b -> then 
-            mul4(<- b, <- aL, e) ||
+            local
+               channel b_1, aL_1 : array 4 of bit
+            begin
+               b_1 <- b ||
+               aL_1 <- aL ||
+               mul4(b_1, aL_1, e)
+            end ||
             b2 <- b
          end 
       end ||
@@ -115,11 +127,25 @@ begin
       d -> dB || 
       e -> eB ;
 
-      add4(<- dB, <- eB, f) ||
+      local
+         channel dB_1, eB_1 : array 4 of bit
+      begin
+         dB_1 <- dB ||
+         eB_1 <- eB ||
+         add4(dB_1, eB_1, f)
+      end ||
       inv4(f,g) ||
       g -> then
-         mul4(<- aHb, <- g, h) ||
-         mul4(<- bB, <- g, j)
+         local
+            channel aHb_1, g_1, g_2, bB_1 : array 4 of bit 
+         begin
+            aHb_1 <- aHb ||
+            g_1 <- g ||
+            bB_1 <- bB ||
+            g_2 <- g ||
+            mul4(aHb_1, g_1, h) ||
+            mul4(bB_1, g_2, j)
+         end
       end ||
       inviso(h, j, o)
    end 

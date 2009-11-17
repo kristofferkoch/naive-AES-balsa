@@ -25,7 +25,7 @@ begin
 end
 
 procedure gfmul8_3 (input inp : byte; output o : byte) is
-   channel imm:byte
+   channel imm : byte
 begin
    inp -> then 
       gfdouble(<- inp, imm) || 
@@ -33,73 +33,6 @@ begin
          o <- imm xor inp
       end
    end
-end
-
-type operands is record
-   a : array 8 of bit;
-   b : array 8 of bit
-end
-
--- based on http://edipermadi.wordpress.com/2008/02/18/aes-finite-field-multiplication-on-logic-gates/
-procedure gfmul (input inp : operands;
-                 output o  : byte) is
-   array 1..7 of channel stage: byte
-   array 0..7 of channel andg: byte
-   type A8_t is array 8 of bit
-begin
-loop
-   inp -> then 
-      gfdouble(<- (inp.b as byte), stage[1]) ||
-      if inp.a[0] = 1 then
-         andg[0] <- (inp.b as byte)
-      else
-         andg[0] <- 0
-      end ||
-      for || k in 1..6 then
-         stage[k] -> then
-            gfdouble(<- stage[k], stage[k+1]) ||
-            if inp.a[k] = 1 then
-               andg[k] <- stage[k]
-            else
-               andg[k] <- 0
-            end
-         end
-      end ||
-      stage[7] -> then
-         if inp.a[7] = 1 then
-            andg[7] <- stage[7]
-         else
-            andg[7] <- 0
-         end
-      end ||
-      andg[0], andg[1], andg[2], andg[3],
-      andg[4], andg[5], andg[6], andg[7] -> then
-         o <- (A8_t {#(andg[0])[0] xor #(andg[1])[0] xor #(andg[2])[0] xor #(andg[3])[0] xor
-               #(andg[4])[0] xor #(andg[5])[0] xor #(andg[6])[0] xor #(andg[7])[0],
-
-               #(andg[0])[1] xor #(andg[1])[1] xor #(andg[2])[1] xor #(andg[3])[1] xor
-               #(andg[4])[1] xor #(andg[5])[1] xor #(andg[6])[1] xor #(andg[7])[1],
-
-               #(andg[0])[2] xor #(andg[1])[2] xor #(andg[2])[2] xor #(andg[3])[2] xor
-               #(andg[4])[2] xor #(andg[5])[2] xor #(andg[6])[2] xor #(andg[7])[2],
-
-               #(andg[0])[3] xor #(andg[1])[3] xor #(andg[2])[3] xor #(andg[3])[3] xor
-               #(andg[4])[3] xor #(andg[5])[3] xor #(andg[6])[3] xor #(andg[7])[3],
-
-               #(andg[0])[4] xor #(andg[1])[4] xor #(andg[2])[4] xor #(andg[3])[4] xor
-               #(andg[4])[4] xor #(andg[5])[4] xor #(andg[6])[4] xor #(andg[7])[4],
-
-               #(andg[0])[5] xor #(andg[1])[5] xor #(andg[2])[5] xor #(andg[3])[5] xor
-               #(andg[4])[5] xor #(andg[5])[5] xor #(andg[6])[5] xor #(andg[7])[5],
-
-               #(andg[0])[6] xor #(andg[1])[6] xor #(andg[2])[6] xor #(andg[3])[6] xor
-               #(andg[4])[6] xor #(andg[5])[6] xor #(andg[6])[6] xor #(andg[7])[6],
-
-               #(andg[0])[7] xor #(andg[1])[7] xor #(andg[2])[7] xor #(andg[3])[7] xor
-               #(andg[4])[7] xor #(andg[5])[7] xor #(andg[6])[7] xor #(andg[7])[7]} as byte)
-      end
-   end
-end
 end
 
 (--procedure gfmul (input inp : operands;

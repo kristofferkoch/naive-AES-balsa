@@ -18,7 +18,7 @@
 import [balsa.types.basic]
 
 procedure mul4(input q,w : array 4 of bit; output o : array 4 of bit) is
-   channel q0w0, q0w1, q1w0, q1w1, q2w3, q3w2, q3w3, q0_xor_q2, w0_xor_w2, q1_xor_q3, w1_xor_w3, q0w0_xor_q1w1, q1w1_xor_q0w1, q3w3_xor_q2w3:bit
+   channel q0w0, q0w1, q1w0, q1w1, q2w3, q3w2, q3w3, q0_xor_q2, w0_xor_w2, q1_xor_q3, w1_xor_w3, q0w0_xor_q1w1, q1w1_xor_q0w1, q3w3_xor_q2w3 : bit
 begin
    q,w -> then
       q0w0 <- q[0] and w[0] ||
