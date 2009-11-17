@@ -32,7 +32,7 @@ type rows is array 4 of 32 bits
 type bytes is array 16 of byte
 
 procedure aes_ctrl(output instruction : instruction) is
-   variable i, ii : 3 bits
+   variable i, ii : 4 bits
 begin
    loop
       instruction <- load_key;
@@ -41,9 +41,9 @@ begin
       
       loop
          instruction <- sub_bytes;
-         instruction <- mix_col_expand || ii := (i+1 as 3 bits);
+         instruction <- mix_col_expand || ii := (i+1 as 4 bits);
          instruction <- add_key        || i  := ii
-      while i /= 0
+      while i /= 9
       end;
 
 
@@ -74,45 +74,48 @@ begin
                --print "loading data";
                for ; j in 0..3 then
                   i -> reg_rows[j]
-               end
-               --; print "data is ",NumberToString(128 bits, (#reg_rows as 128 bits), 16, 8, 1)
+               end ||
+               rcon1 := 1
+               ; print "data is ",NumberToString(128 bits, (#reg_rows as 128 bits), 16, 8, 1)
          |  load_key then
                --print "loading key";
                for ; j in 0..3 then
                   i -> reg_key[j]
                end ||
-               rcon := 0
-               --; print "key is ", NumberToString(128 bits, (#reg_key as 128 bits), 16, 8, 1)
+               rcon1 := 1
+               ; print "key is ", NumberToString(128 bits, (#reg_key as 128 bits), 16, 8, 1)
          |  add_key then
-               --print "adding key ", NumberToString(128 bits, (#reg_key as 128 bits), 16, 8, 1);
-               for || i in 0..3 then
+               print "adding key ", NumberToString(128 bits, (#reg_key as 128 bits), 16, 8, 1);
+               [for || i in 0..3 then
                   reg_rows1[i] := reg_rows[i] xor reg_key[i]
                end ||
-               reg_key1 := reg_key
+               reg_key1 := reg_key];
+               reg_rows := reg_rows1
          |  sub_bytes then
-               tosbox[0] <- (#reg_rows[0..7] as byte) ||
-               tosbox[1] <- (#reg_rows[40..47] as byte) ||
-               tosbox[2] <- (#reg_rows[80..87] as byte) ||
-               tosbox[3] <- (#reg_rows[120..127] as byte) ||
-               fromsbox -> reg_rows1[0];
+               tosbox[0] <- (#reg_rows[120..127] as byte) ||
+               tosbox[1] <- (#reg_rows[16..23] as byte) ||
+               tosbox[2] <- (#reg_rows[40..47] as byte) ||
+               tosbox[3] <- (#reg_rows[64..71] as byte) ||
+               fromsbox -> reg_rows1[3];
 
-               tosbox[0] <- (#reg_rows[32..39] as byte) ||
-               tosbox[1] <- (#reg_rows[72..79] as byte) ||
-               tosbox[2] <- (#reg_rows[112..119] as byte) ||
-               tosbox[3] <- (#reg_rows[24..31] as byte) ||
-               fromsbox -> reg_rows1[1];
-
-               tosbox[0] <- (#reg_rows[64..71] as byte) ||
-               tosbox[1] <- (#reg_rows[104..111] as byte) ||
-               tosbox[2] <- (#reg_rows[16..23] as byte) ||
-               tosbox[3] <- (#reg_rows[56..63] as byte) ||
+               tosbox[0] <- (#reg_rows[88..95] as byte) ||
+               tosbox[1] <- (#reg_rows[112..119] as byte) ||
+               tosbox[2] <- (#reg_rows[8..15] as byte) ||
+               tosbox[3] <- (#reg_rows[32..39] as byte) ||
                fromsbox -> reg_rows1[2];
 
-               tosbox[0] <- (#reg_rows[96..103] as byte) ||
-               tosbox[1] <- (#reg_rows[8..15] as byte) ||
-               tosbox[2] <- (#reg_rows[48..55] as byte) ||
-               tosbox[3] <- (#reg_rows[88..95] as byte) ||
-               fromsbox -> reg_rows1[3]
+               tosbox[0] <- (#reg_rows[56..63] as byte) ||
+               tosbox[1] <- (#reg_rows[80..87] as byte) ||
+               tosbox[2] <- (#reg_rows[104..111] as byte) ||
+               tosbox[3] <- (#reg_rows[0..7] as byte) ||
+               fromsbox -> reg_rows1[1];
+
+               tosbox[0] <- (#reg_rows[24..31] as byte) ||
+               tosbox[1] <- (#reg_rows[48..55] as byte) ||
+               tosbox[2] <- (#reg_rows[72..79] as byte) ||
+               tosbox[3] <- (#reg_rows[96..103] as byte) ||
+               fromsbox -> reg_rows1[0]
+	       ; print "data is after shiftrows ",NumberToString(128 bits, (#reg_rows1 as 128 bits), 16, 8, 1)
          |  mix_col_expand..skip_mix_expand then
                if instruction = mix_col_expand then
                   for ; i in 0..3 then
@@ -122,13 +125,15 @@ begin
                else
                   reg_rows := reg_rows1
                end ||
-               tosbox[0] <- (#(reg_key1[3])[8..15] as byte) ||
-               tosbox[1] <- (#(reg_key1[3])[16..23] as byte) ||
-               tosbox[2] <- (#(reg_key1[3])[24..31] as byte) ||
-               tosbox[3] <- (#(reg_key1[3])[0..7] as byte) ||
+               tosbox[1] <- (#(reg_key1[3])[8..15] as byte) ||
+               tosbox[0] <- (#(reg_key1[3])[16..23] as byte) ||
+               tosbox[3] <- (#(reg_key1[3])[24..31] as byte) ||
+               tosbox[2] <- (#(reg_key1[3])[0..7] as byte) ||
+               rcon := rcon1 ;
                [
                   fromsbox -> then 
-                     reg_key[0] := fromsbox xor reg_key1[0] xor (rcon as 32 bits)
+                     reg_key[0] := fromsbox xor reg_key1[0] xor ((#(0 as 24 bits) @ #rcon) as 32 bits)
+--;print "key after sub ",NumberToString(32 bits, (#fromsbox as 32 bits), 16, 8, 1)
                   end ||
                   torcon <- rcon || fromrcon -> rcon1;
                   reg_key[1] := reg_key1[1] xor reg_key[0];
@@ -149,7 +154,7 @@ begin
    end ||
    loop
       select fromsbox1[0], fromsbox1[1], fromsbox1[2], fromsbox1[3] then
-         fromsbox <- ((#(fromsbox1[0]) @ #(fromsbox1[1]) @ #(fromsbox1[2]) @ #(fromsbox1[3])) as 32 bits)
+         fromsbox <- ((#(fromsbox1[3]) @ #(fromsbox1[2]) @ #(fromsbox1[1]) @ #(fromsbox1[0])) as 32 bits)
       end
    end ||
    mixcolumn(tomix, frommix) ||
